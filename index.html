@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Craft | Macintosh Edition</title>
+    <style>
+        /* Macintosh Classic Styling */
+        :root {
+            --mac-beige: #DFDBD4;
+            --mac-dark-beige: #C0B8B0;
+            --mac-darker-beige: #A89F95;
+            --mac-black: #000000;
+            --mac-white: #FFFFFF;
+            --mac-gray: #808080;
+            --mac-dark-gray: #404040;
+            --mac-blue: #0000FF;
+            --mac-red: #FF0000;
+            --mac-green: #00FF00;
+            --mac-purple: #800080;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+            touch-action: manipulation;
+        }
+
+        body {
+            background-color: var(--mac-beige);
+            color: var(--mac-black);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        /* CRT monitor effect */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 4px, 3px 100%;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        /* Macintosh Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--mac-beige);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 1s ease;
+        }
+
+        .loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .mac-window {
+            width: 500px;
+            background: var(--mac-beige);
+            border: 2px solid var(--mac-black);
+            border-radius: 0;
+            box-shadow: 4px 4px 0 var(--mac-dark-gray);
+            position: relative;
+        }
+
+        .window-header {
+            background: linear-gradient(to bottom, var(--mac-gray), var(--mac-dark-gray));
+            color: var(--mac-white);
+            padding: 5px 10px;
+            border-bottom: 2px solid var(--mac-black);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .window-control {
+            width: 12px;
+            height: 12px;
+            border: 1px solid var(--mac-black);
+            background: var(--mac-beige);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 8px;
+            color: var(--mac-black);
+        }
+
+        .window-content {
+            padding: 20px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .happy-mac {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            border: 2px solid var(--mac-black);
+            background: var(--mac-white);
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: var(--mac-black);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .loading-text {
+            font-size: 14px;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .floppy-disk {
+            width: 80px;
+            height: 80px;
+            background: var(--mac-gray);
+            border: 2px solid var(--mac-black);
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--mac-white);
+            font-size: 10px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.3s ease;
+            box-shadow: 2px 2px 0 var(--mac-dark-gray);
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .floppy-disk::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+        }
+
+        .floppy-disk::after {
+            content: "";
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 12px;
+            height: 12px;
+            background: var(--mac-dark-gray);
+            border: 1px solid var(--mac-black);
+            border-radius: 2px;
+        }
+
+        .floppy-disk.dragging {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        /* Macintosh Computer Design */
+        .mac-computer {
+            width: 900px;
+            max-width: 95vw;
+            background: var(--mac-beige);
+            border: 20px solid var(--mac-dark-beige);
+            border-radius: 10px;
+            box-shadow: 
+                0 0 20px rgba(0, 0, 0, 0.3), 
+                inset 0 0 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding: 20px;
+            display: none;
+            overflow: hidden;
+        }
+
+        .mac-computer.active {
+            display: block;
+        }
+
+        .mac-screen {
+            background-color: var(--mac-white);
+            border: 3px solid var(--mac-black);
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 
+                inset 0 0 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .desktop {
+            min-height: 550px;
+            position: relative;
+        }
+
+        .menu-bar {
+            background: var(--mac-beige);
+            border-bottom: 2px solid var(--mac-black);
+            padding: 5px 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        .apple-menu {
+            font-weight: bold;
+        }
+
+        .desktop-icons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .desktop-icon {
+            width: 64px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .icon-img {
+            width: 32px;
+            height: 32px;
+            background: var(--mac-gray);
+            border: 1px solid var(--mac-black);
+            margin: 0 auto 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+        }
+
+        .icon-label {
+            font-size: 11px;
+            color: var(--mac-black);
+        }
+
+        /* Game Windows */
+        .game-window {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            width: 600px;
+            background: var(--mac-beige);
+            border: 2px solid var(--mac-black);
+            box-shadow: 4px 4px 0 var(--mac-dark-gray);
+            z-index: 10;
+            display: none;
+        }
+
+        .game-window.active {
+            display: block;
+        }
+
+        .game-content {
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .crafting-section, .inventory-section {
+            background-color: var(--mac-white);
+            border: 1px solid var(--mac-black);
+            padding: 15px;
+            position: relative;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--mac-black);
+            border-bottom: 1px solid var(--mac-black);
+            padding-bottom: 5px;
+        }
+
+        .elements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 5px;
+            border: 1px solid var(--mac-gray);
+            background: var(--mac-white);
+        }
+
+        .element {
+            background: var(--mac-white);
+            border: 1px solid var(--mac-black);
+            border-radius: 0;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+            color: var(--mac-black);
+            box-shadow: 1px 1px 0 var(--mac-dark-gray);
+            user-select: none;
+        }
+
+        .element:hover, .element:active {
+            background: var(--mac-beige);
+            transform: translate(1px, 1px);
+            box-shadow: none;
+        }
+
+        .element.dragging {
+            opacity: 0.7;
+        }
+
+        .crafting-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px 0;
+            min-height: 100px;
+            background: var(--mac-white);
+            border: 1px solid var(--mac-black);
+            padding: 10px;
+            position: relative;
+        }
+
+        .slot {
+            width: 70px;
+            height: 70px;
+            border: 2px dashed var(--mac-gray);
+            border-radius: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--mac-white);
+            font-size: 11px;
+            text-align: center;
+            padding: 5px;
+            color: var(--mac-black);
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .slot.highlight {
+            border-color: var(--mac-black);
+            background-color: var(--mac-beige);
+        }
+
+        .slot.filled {
+            border-style: solid;
+            background-color: var(--mac-beige);
+        }
+
+        .plus-sign {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--mac-black);
+        }
+
+        .mac-button {
+            background: var(--mac-beige);
+            color: var(--mac-black);
+            border: 1px solid var(--mac-black);
+            padding: 8px 15px;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            box-shadow: 2px 2px 0 var(--mac-dark-gray);
+            -webkit-tap-highlight-color: transparent;
+            font-weight: bold;
+        }
+
+        .mac-button:hover, .mac-button:active {
+            background: var(--mac-dark-beige);
+            transform: translate(2px, 2px);
+            box-shadow: none;
+        }
+
+        .mac-button:disabled {
+            background: var(--mac-gray);
+            color: var(--mac-dark-gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 1px 1px 0 var(--mac-dark-gray);
+        }
+
+        .result-section {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid var(--mac-black);
+            text-align: center;
+            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--mac-white);
+            font-size: 12px;
+        }
+
+        .success {
+            color: var(--mac-black);
+            border-color: var(--mac-black);
+        }
+
+        .error {
+            color: var(--mac-red);
+            border-color: var(--mac-red);
+        }
+
+        .new-element {
+            animation: macPop 0.3s ease;
+        }
+
+        @keyframes macPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Enhanced Floppy Disk Inventory */
+        .floppy-rack {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: var(--mac-white);
+            border: 1px solid var(--mac-gray);
+        }
+
+        .inventory-floppy {
+            background: var(--mac-gray);
+            border: 2px solid var(--mac-black);
+            border-radius: 0;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 2px 2px 0 var(--mac-dark-gray);
+            position: relative;
+            overflow: hidden;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .inventory-floppy::before {
+            content: "";
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .inventory-floppy::after {
+            content: "";
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            width: 15px;
+            height: 15px;
+            background: var(--mac-dark-gray);
+            border: 1px solid var(--mac-black);
+        }
+
+        .inventory-floppy:hover, .inventory-floppy:active {
+            transform: translate(2px, 2px);
+            box-shadow: none;
+        }
+
+        .floppy-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+            z-index: 1;
+        }
+
+        .floppy-detail {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            background: var(--mac-beige);
+            border: 2px solid var(--mac-black);
+            box-shadow: 4px 4px 0 var(--mac-dark-gray);
+            z-index: 1000;
+        }
+
+        .floppy-detail.show {
+            display: block;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--mac-black);
+            padding-bottom: 5px;
+        }
+
+        .detail-title {
+            font-size: 16px;
+            color: var(--mac-black);
+        }
+
+        .close-detail {
+            background: none;
+            border: none;
+            color: var(--mac-black);
+            font-size: 16px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .detail-content {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .detail-recipe {
+            margin-top: 10px;
+            padding: 8px;
+            background: var(--mac-white);
+            border: 1px solid var(--mac-black);
+        }
+
+        .discovered-count {
+            margin-top: 10px;
+            text-align: center;
+            font-style: italic;
+            font-size: 11px;
+            color: var(--mac-gray);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        /* Easter Egg Elements */
+        .easter-egg {
+            background: var(--mac-purple) !important;
+            color: var(--mac-white) !important;
+        }
+
+        .secret-element {
+            animation: secretGlow 2s infinite;
+        }
+
+        @keyframes secretGlow {
+            0% { box-shadow: 0 0 5px var(--mac-purple); }
+            50% { box-shadow: 0 0 15px var(--mac-purple); }
+            100% { box-shadow: 0 0 5px var(--mac-purple); }
+        }
+
+        /* Trash Can */
+        .trash-can {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 64px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .trash-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--mac-gray);
+            border: 1px solid var(--mac-black);
+            margin: 0 auto 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+        }
+
+        /* Eject Button */
+        .eject-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--mac-beige);
+            color: var(--mac-black);
+            border: 1px solid var(--mac-black);
+            padding: 8px 12px;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+            box-shadow: 2px 2px 0 var(--mac-dark-gray);
+            -webkit-tap-highlight-color: transparent;
+            z-index: 100;
+        }
+
+        .eject-btn:hover, .eject-btn:active {
+            background: var(--mac-dark-beige);
+            transform: translate(2px, 2px);
+            box-shadow: none;
+        }
+
+        /* Hidden Easter Egg */
+        .hidden-easter-egg {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 10px;
+            height: 10px;
+            background: transparent;
+            cursor: pointer;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    
+    <!-- Hidden Easter Egg -->
+    <div class="hidden-easter-egg" id="hidden-easter-egg"></div>
+    
+    <!-- Eject Button -->
+    <button class="eject-btn" id="eject-btn" style="display: none;">
+        EJECT
+    </button>
+    
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="mac-window">
+            <div class="window-header">
+                <div>Welcome to Macintosh</div>
+                <div class="window-controls">
+                    <div class="window-control">-</div>
+                    <div class="window-control">□</div>
+                    <div class="window-control">×</div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="happy-mac">☺</div>
+                <div class="loading-text">Infinite Craft</div>
+                <div class="loading-text">Insert the floppy disk to continue</div>
+                <div class="loading-bar">
+                    <div class="loading-progress" id="loading-progress"></div>
+                </div>
+                <div class="loading-text" id="loading-status">Ready</div>
+                <div class="floppy-disk" id="floppy-disk">FLOPPY DISK</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Macintosh Computer -->
+    <div class="mac-computer" id="mac-computer">
+        <div class="mac-screen">
+            <div class="desktop">
+                <div class="menu-bar">
+                    <div class="apple-menu">🍎</div>
+                    <div>File Edit View Special</div>
+                    <div id="menu-time">12:00 PM</div>
+                </div>
+                
+                <div class="desktop-icons">
+                    <div class="desktop-icon" id="crafting-icon">
+                        <div class="icon-img">🧪</div>
+                        <div class="icon-label">Crafting</div>
+                    </div>
+                    <div class="desktop-icon" id="inventory-icon">
+                        <div class="icon-img">💾</div>
+                        <div class="icon-label">Inventory</div>
+                    </div>
+                    <div class="desktop-icon" id="help-icon">
+                        <div class="icon-img">❓</div>
+                        <div class="icon-label">Help</div>
+                    </div>
+                </div>
+                
+                <!-- Trash Can -->
+                <div class="trash-can" id="trash-can">
+                    <div class="trash-icon">🗑</div>
+                    <div class="icon-label">Trash</div>
+                </div>
+                
+                <!-- Crafting Window -->
+                <div class="game-window" id="crafting-window">
+                    <div class="window-header">
+                        <div>Crafting</div>
+                        <div class="window-controls">
+                            <div class="window-control">-</div>
+                            <div class="window-control">□</div>
+                            <div class="window-control" id="close-crafting">×</div>
+                        </div>
+                    </div>
+                    <div class="game-content">
+                        <div class="game-area">
+                            <section class="crafting-section">
+                                <h2>CRAFTING AREA</h2>
+                                <div class="elements-grid" id="crafting-elements">
+                                    <!-- Starter elements will be added here -->
+                                </div>
+
+                                <div class="crafting-area">
+                                    <div class="slot" id="slot1"></div>
+                                    <div class="plus-sign">+</div>
+                                    <div class="slot" id="slot2"></div>
+                                </div>
+
+                                <button class="mac-button" id="combine-btn" disabled>COMBINE</button>
+
+                                <div class="result-section" id="result-section">
+                                    <p>DRAG ELEMENTS TO SLOTS</p>
+                                </div>
+                            </section>
+
+                            <section class="inventory-section">
+                                <h2>INVENTORY</h2>
+                                <div class="floppy-rack" id="inventory">
+                                    <!-- Floppy disks will be added here dynamically -->
+                                </div>
+                                <div class="discovered-count">
+                                    <span id="discovered-count">0</span> ELEMENTS FOUND
+                                </div>
+                            </section>
+                        </div>
+
+                        <div class="controls">
+                            <button class="mac-button" id="reset-btn">
+                                NEW GAME
+                            </button>
+                            <button class="mac-button" id="hint-btn">
+                                HINT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Inventory Window -->
+                <div class="game-window" id="inventory-window">
+                    <div class="window-header">
+                        <div>Inventory</div>
+                        <div class="window-controls">
+                            <div class="window-control">-</div>
+                            <div class="window-control">□</div>
+                            <div class="window-control" id="close-inventory">×</div>
+                        </div>
+                    </div>
+                    <div class="game-content">
+                        <div class="floppy-rack" id="inventory-detail">
+                            <!-- Floppy disks will be added here dynamically -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Help Window -->
+                <div class="game-window" id="help-window">
+                    <div class="window-header">
+                        <div>Infinite Craft Help</div>
+                        <div class="window-controls">
+                            <div class="window-control">-</div>
+                            <div class="window-control">□</div>
+                            <div class="window-control" id="close-help">×</div>
+                        </div>
+                    </div>
+                    <div class="game-content">
+                        <h2>HOW TO PLAY</h2>
+                        <p>Drag elements from your inventory to the crafting slots and click COMBINE to create new elements.</p>
+                        <p>Discover all 42 elements to complete the game!</p>
+                        <h2>SECRETS</h2>
+                        <p>Try combining unusual elements to discover Easter eggs and secret combinations.</p>
+                        <p>Hint: Some elements have special properties when combined with themselves.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floppy Disk Detail Modal -->
+    <div class="floppy-detail" id="floppy-detail">
+        <div class="window-header">
+            <div id="detail-title">ELEMENT DETAIL</div>
+            <div class="window-controls">
+                <div class="window-control">-</div>
+                <div class="window-control">□</div>
+                <div class="window-control" id="close-detail">×</div>
+            </div>
+        </div>
+        <div class="game-content">
+            <div class="detail-content" id="detail-content">
+                <!-- Detail content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state with expanded elements and Easter eggs
+        const gameState = {
+            inventory: new Set(),
+            craftingSlots: [null, null],
+            elementColors: {},
+            // Expanded combinations with Easter eggs
+            combinations: {
+                // Basic combinations
+                'Earth+Fire': 'Lava',
+                'Earth+Water': 'Mud',
+                'Earth+Wind': 'Dust',
+                'Fire+Water': 'Steam',
+                'Fire+Wind': 'Smoke',
+                'Water+Wind': 'Wave',
+                'Water+Water': 'Lake',
+                'Earth+Earth': 'Mountain',
+                'Fire+Fire': 'Inferno',
+                'Wind+Wind': 'Storm',
+                
+                // Second tier
+                'Lava+Water': 'Obsidian',
+                'Lava+Earth': 'Volcano',
+                'Mud+Fire': 'Brick',
+                'Mud+Water': 'Swamp',
+                'Steam+Earth': 'Geyser',
+                'Steam+Fire': 'Energy',
+                'Smoke+Water': 'Fog',
+                'Smoke+Fire': 'Soot',
+                'Dust+Fire': 'Ash',
+                'Dust+Water': 'Clay',
+                'Wave+Earth': 'Beach',
+                'Wave+Fire': 'Tsunami',
+                
+                // Third tier
+                'Obsidian+Fire': 'Glass',
+                'Volcano+Water': 'Island',
+                'Brick+Brick': 'Wall',
+                'Brick+Fire': 'Furnace',
+                'Swamp+Fire': 'Tar',
+                'Geyser+Stone': 'Hot Spring',
+                'Energy+Water': 'Electricity',
+                'Energy+Earth': 'Crystal',
+                'Fog+Wind': 'Cloud',
+                'Soot+Water': 'Ink',
+                'Ash+Water': 'Potion',
+                'Clay+Fire': 'Ceramic',
+                'Beach+Wave': 'Surf',
+                'Tsunami+Earth': 'Flood',
+                
+                // Fourth tier
+                'Glass+Sand': 'Hourglass',
+                'Island+Wind': 'Palm Tree',
+                'Wall+Wall': 'House',
+                'Furnace+Ore': 'Metal',
+                'Tar+Earth': 'Asphalt',
+                'Hot Spring+Water': 'Spa',
+                'Electricity+Wind': 'Storm',
+                'Crystal+Fire': 'Laser',
+                'Cloud+Water': 'Rain',
+                'Ink+Paper': 'Book',
+                'Potion+Fire': 'Explosion',
+                'Ceramic+Water': 'Vase',
+                'Surf+Wind': 'Wind Surfing',
+                'Flood+Fire': 'Steam Age',
+                'Hourglass+Fire': 'Time',
+                
+                // Easter egg combinations
+                'Time+Time': 'Paradox',
+                'Paradox+Paradox': 'Universe',
+                'Universe+Universe': 'Multiverse',
+                'Computer+Computer': 'Internet',
+                'Internet+Internet': 'AI',
+                'AI+AI': 'Singularity',
+                'Singularity+Singularity': 'God',
+                'God+God': 'Religion',
+                'Religion+Religion': 'Philosophy',
+                'Philosophy+Philosophy': 'Wisdom',
+                
+                // Special self-combinations
+                'Lake+Lake': 'Ocean',
+                'Mountain+Mountain': 'Range',
+                'Storm+Storm': 'Hurricane',
+                'Energy+Energy': 'Plasma',
+                'Time+Energy': 'Wormhole',
+                
+                // Secret Mac-themed combinations
+                'Computer+Apple': 'Macintosh',
+                'Macintosh+User': 'Happy Mac',
+                'Happy Mac+Sad Mac': 'Crash',
+                'Crash+Restart': 'Hope'
+            },
+            elementDescriptions: {
+                'Earth': 'The solid ground beneath our feet. Foundation of all terrestrial elements.',
+                'Fire': 'The transformative power of heat and light. Both destructive and creative.',
+                'Water': 'The fluid essence of life. Adaptable and essential for existence.',
+                'Wind': 'The invisible force of motion. Carries seeds, sounds, and change.',
+                'Lava': 'Molten rock from the Earth\'s core. The birth of new land.',
+                'Mud': 'Earth and water combined. The primordial ooze of potential.',
+                'Dust': 'Fine particles carried by wind. The remains of what once was.',
+                'Steam': 'Water transformed by heat. Power of industry and change.',
+                'Smoke': 'The visible residue of fire. Carries secrets on the wind.',
+                'Wave': 'Water given motion by wind. The rhythm of the oceans.',
+                'Lake': 'A body of water surrounded by land. Peaceful and reflective.',
+                'Mountain': 'The peak of earthly ambition. Reaching for the sky.',
+                'Inferno': 'Uncontrolled fire. Pure destructive energy.',
+                'Storm': 'Atmospheric turmoil. Nature\'s fury unleashed.',
+                'Obsidian': 'Volcanic glass forged in extreme heat. Sharp and ancient.',
+                'Volcano': 'Earth\'s fiery breath. Creation and destruction in one.',
+                'Brick': 'Fired clay shaped by intention. The building block of civilization.',
+                'Swamp': 'Water and earth in stagnant harmony. Life in transition.',
+                'Geyser': 'Underground water heated to eruption. Nature\'s timed spectacle.',
+                'Energy': 'The potential for work and change. The invisible force of existence.',
+                'Fog': 'Earthbound clouds of mystery. Obscures and reveals in turns.',
+                'Soot': 'The dark residue of incomplete combustion. Evidence of fire\'s passage.',
+                'Ash': 'The final remains of what fire consumes. Fertile ground for new beginnings.',
+                'Clay': 'Earth refined by water. The sculptor\'s medium of choice.',
+                'Beach': 'Where land meets sea. The ever-changing border of worlds.',
+                'Tsunami': 'Ocean\'s wrath unleashed. The power of water in motion.',
+                'Glass': 'Sand transformed by intense heat. Transparency forged in fire.',
+                'Island': 'Land surrounded by sea. Isolation and discovery in one.',
+                'Wall': 'The division of space. Protection and separation.',
+                'Furnace': 'Contained fire for transformation. The heart of industry.',
+                'Tar': 'Thick, dark petroleum residue. The sticky foundation of roads.',
+                'Hot Spring': 'Earth\'s heated waters rising. Nature\'s therapeutic bath.',
+                'Electricity': 'The flow of charged particles. Modern civilization\'s lifeblood.',
+                'Crystal': 'Earth\'s minerals in perfect order. Beauty formed under pressure.',
+                'Cloud': 'Atmospheric water vapor. The sky\'s ever-changing canvas.',
+                'Ink': 'Pigmented liquid for recording thoughts. The medium of knowledge.',
+                'Potion': 'Magical mixture with unknown effects. Alchemy\'s mysterious product.',
+                'Ceramic': 'Clay transformed by fire. The durable art of earth.',
+                'Surf': 'The sport of riding waves. Harmony between human and ocean.',
+                'Flood': 'Water overwhelming its boundaries. Nature\'s reset button.',
+                'Steam Age': 'The era of steam power. The beginning of modern industry.',
+                'Hourglass': 'Time made visible through falling sand. The measure of moments.',
+                'Time': 'The fourth dimension of existence. The river that carries all things.',
+                'Ocean': 'Vast body of saltwater. Home to countless mysteries.',
+                'Range': 'Series of connected mountains. A formidable barrier.',
+                'Hurricane': 'Powerful tropical cyclone. Nature\'s most destructive force.',
+                'Plasma': 'Fourth state of matter. The stuff of stars.',
+                'Wormhole': 'Theoretical passage through spacetime. A shortcut across the universe.',
+                
+                // Easter egg elements
+                'Paradox': 'A self-contradictory statement. Breaks the rules of logic.',
+                'Universe': 'All of spacetime and everything contained within. The ultimate whole.',
+                'Multiverse': 'The hypothetical set of all possible universes. Infinite possibilities.',
+                'Computer': 'Electronic device for processing data. The foundation of digital age.',
+                'Internet': 'Global system of interconnected networks. The information superhighway.',
+                'AI': 'Artificial Intelligence. Machines that can learn and think.',
+                'Singularity': 'Hypothetical moment when AI surpasses human intelligence. The point of no return.',
+                'God': 'Supreme being. The creator of all things.',
+                'Religion': 'System of faith and worship. Humanity\'s search for meaning.',
+                'Philosophy': 'The study of fundamental questions. Love of wisdom.',
+                'Wisdom': 'The quality of having experience and good judgment. The ultimate knowledge.',
+                'Macintosh': 'Revolutionary personal computer. Changed computing forever.',
+                'Happy Mac': 'The friendly startup icon. Everything is working perfectly.',
+                'Sad Mac': 'The dreaded crash icon. Something has gone terribly wrong.',
+                'Crash': 'System failure. The blue screen of death.',
+                'Restart': 'The solution to most problems. Turning it off and on again.',
+                'Hope': 'The belief that things will get better. The light in the darkness.'
+            },
+            // Easter eggs - special elements with unique properties
+            easterEggs: {
+                'Paradox': {
+                    type: 'secret',
+                    effect: 'Unlocks time-related combinations'
+                },
+                'Universe': {
+                    type: 'cosmic',
+                    effect: 'Allows creation of metaphysical elements'
+                },
+                'Macintosh': {
+                    type: 'tech',
+                    effect: 'Unlocks computer-themed elements'
+                },
+                'God': {
+                    type: 'divine',
+                    effect: 'The ultimate element - can create anything'
+                }
+            },
+            // Special achievements
+            achievements: {
+                'First Creation': false,
+                'Master Crafter': false,
+                'Elemental Master': false,
+                'Easter Egg Hunter': false,
+                'Digital God': false
+            }
+        };
+
+        // Starter elements
+        const starterElements = ['Earth', 'Fire', 'Water', 'Wind'];
+
+        // DOM elements
+        const loadingScreen = document.getElementById('loading-screen');
+        const loadingProgress = document.getElementById('loading-progress');
+        const loadingStatus = document.getElementById('loading-status');
+        const floppyDisk = document.getElementById('floppy-disk');
+        const macComputer = document.getElementById('mac-computer');
+        const craftingWindow = document.getElementById('crafting-window');
+        const inventoryWindow = document.getElementById('inventory-window');
+        const helpWindow = document.getElementById('help-window');
+        const craftingIcon = document.getElementById('crafting-icon');
+        const inventoryIcon = document.getElementById('inventory-icon');
+        const helpIcon = document.getElementById('help-icon');
+        const closeCrafting = document.getElementById('close-crafting');
+        const closeInventory = document.getElementById('close-inventory');
+        const closeHelp = document.getElementById('close-help');
+        const slots = [document.getElementById('slot1'), document.getElementById('slot2')];
+        const combineBtn = document.getElementById('combine-btn');
+        const resultSection = document.getElementById('result-section');
+        const inventoryContainer = document.getElementById('inventory');
+        const inventoryDetail = document.getElementById('inventory-detail');
+        const discoveredCount = document.getElementById('discovered-count');
+        const resetBtn = document.getElementById('reset-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const ejectBtn = document.getElementById('eject-btn');
+        const craftingElements = document.getElementById('crafting-elements');
+        const floppyDetail = document.getElementById('floppy-detail');
+        const detailTitle = document.getElementById('detail-title');
+        const detailContent = document.getElementById('detail-content');
+        const closeDetail = document.getElementById('close-detail');
+        const trashCan = document.getElementById('trash-can');
+        const hiddenEasterEgg = document.getElementById('hidden-easter-egg');
+        const menuTime = document.getElementById('menu-time');
+
+        // Track if disk is inserted
+        let diskInserted = false;
+        let secretClickCount = 0;
+        let easterEggsFound = 0;
+
+        // Update menu time
+        function updateTime() {
+            const now = new Date();
+            menuTime.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Initialize the game
+        function initGame() {
+            // Set up floppy disk drag and drop
+            setupFloppyDrag();
+            
+            // Set up game controls
+            combineBtn.addEventListener('click', combineElements);
+            resetBtn.addEventListener('click', resetGame);
+            hintBtn.addEventListener('click', showHint);
+            ejectBtn.addEventListener('click', ejectDisk);
+            closeDetail.addEventListener('click', closeFloppyDetail);
+            
+            // Set up window controls
+            craftingIcon.addEventListener('click', () => toggleWindow('crafting'));
+            inventoryIcon.addEventListener('click', () => toggleWindow('inventory'));
+            helpIcon.addEventListener('click', () => toggleWindow('help'));
+            closeCrafting.addEventListener('click', () => toggleWindow('crafting'));
+            closeInventory.addEventListener('click', () => toggleWindow('inventory'));
+            closeHelp.addEventListener('click', () => toggleWindow('help'));
+            
+            // Set up trash can
+            trashCan.addEventListener('click', showTrashMessage);
+            
+            // Set up hidden Easter egg
+            hiddenEasterEgg.addEventListener('click', handleSecretClick);
+            
+            // Set up keyboard shortcuts
+            document.addEventListener('keydown', handleKeyPress);
+            
+            // Set up auto-save on page unload
+            window.addEventListener('beforeunload', autoSave);
+            
+            // Load game from localStorage
+            loadGame();
+        }
+
+        // Toggle window visibility
+        function toggleWindow(windowName) {
+            const windows = {
+                'crafting': craftingWindow,
+                'inventory': inventoryWindow,
+                'help': helpWindow
+            };
+            
+            Object.values(windows).forEach(window => {
+                window.classList.remove('active');
+            });
+            
+            if (windows[windowName].classList.contains('active')) {
+                windows[windowName].classList.remove('active');
+            } else {
+                windows[windowName].classList.add('active');
+            }
+        }
+
+        // Set up floppy disk drag and drop
+        function setupFloppyDrag() {
+            let isDragging = false;
+            let startX, startY;
+            
+            floppyDisk.addEventListener('mousedown', startDrag);
+            floppyDisk.addEventListener('touchstart', startDrag);
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', drag);
+            
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+            
+            function startDrag(e) {
+                isDragging = true;
+                floppyDisk.classList.add('dragging');
+                
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                
+                startX = clientX - floppyDisk.offsetLeft;
+                startY = clientY - floppyDisk.offsetTop;
+                
+                e.preventDefault();
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                
+                floppyDisk.style.left = (clientX - startX) + 'px';
+                floppyDisk.style.top = (clientY - startY) + 'px';
+                
+                e.preventDefault();
+            }
+            
+            function endDrag(e) {
+                if (!isDragging) return;
+                
+                isDragging = false;
+                floppyDisk.classList.remove('dragging');
+                
+                // Check if floppy was dropped in the "drive" (loading screen)
+                const floppyRect = floppyDisk.getBoundingClientRect();
+                const screenRect = loadingScreen.getBoundingClientRect();
+                
+                if (floppyRect.right > screenRect.left && 
+                    floppyRect.left < screenRect.right &&
+                    floppyRect.bottom > screenRect.top && 
+                    floppyRect.top < screenRect.bottom) {
+                    insertFloppy();
+                }
+                
+                // Reset position if not inserted
+                if (!diskInserted) {
+                    floppyDisk.style.left = '';
+                    floppyDisk.style.top = '';
+                }
+            }
+        }
+
+        // Insert floppy disk and start boot sequence
+        function insertFloppy() {
+            floppyDisk.style.cursor = 'default';
+            diskInserted = true;
+            
+            // Start boot sequence with progress bar
+            let progress = 0;
+            const bootInterval = setInterval(() => {
+                progress += 2;
+                loadingProgress.style.width = `${progress}%`;
+                
+                if (progress <= 20) {
+                    loadingStatus.textContent = "Initializing System...";
+                } else if (progress <= 40) {
+                    loadingStatus.textContent = "Loading ROM...";
+                } else if (progress <= 60) {
+                    loadingStatus.textContent = "Mounting Drives...";
+                } else if (progress <= 80) {
+                    loadingStatus.textContent = "Starting Crafting Engine...";
+                } else {
+                    loadingStatus.textContent = "Ready!";
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(bootInterval);
+                    setTimeout(() => {
+                        startGame();
+                    }, 1000);
+                }
+            }, 100);
+        }
+
+        // Eject the floppy disk
+        function ejectDisk() {
+            if (!diskInserted) return;
+            
+            // Hide the game and show eject button
+            macComputer.classList.remove('active');
+            ejectBtn.style.display = 'none';
+            
+            // Reset floppy disk position
+            floppyDisk.style.cursor = 'pointer';
+            
+            // Reset loading screen
+            loadingProgress.style.width = '0%';
+            loadingStatus.textContent = "Ready";
+            
+            // Show loading screen again
+            loadingScreen.style.display = 'flex';
+            loadingScreen.classList.remove('fade-out');
+            
+            diskInserted = false;
+        }
+
+        // Start the game (from loading screen)
+        function startGame() {
+            loadingScreen.classList.add('fade-out');
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                macComputer.classList.add('active');
+                ejectBtn.style.display = 'block';
+                
+                // Initialize starter elements if no save data
+                if (gameState.inventory.size === 0) {
+                    starterElements.forEach(element => {
+                        gameState.inventory.add(element);
+                    });
+                    updateInventory();
+                    rebuildCraftingArea();
+                }
+                
+                // Open crafting window by default
+                toggleWindow('crafting');
+                
+                // Set up drag and drop for elements
+                setupElementInteractions();
+            }, 1000);
+        }
+
+        // Handle keyboard shortcuts
+        function handleKeyPress(e) {
+            switch(e.key) {
+                case 'Escape':
+                    if (diskInserted) {
+                        ejectDisk();
+                    } else {
+                        closeFloppyDetail();
+                    }
+                    break;
+                case '1':
+                    toggleWindow('crafting');
+                    break;
+                case '2':
+                    toggleWindow('inventory');
+                    break;
+                case '3':
+                    toggleWindow('help');
+                    break;
+            }
+        }
+
+        // Set up element interactions
+        function setupElementInteractions() {
+            // Crafting area elements
+            document.querySelectorAll('.element').forEach(element => {
+                element.addEventListener('click', () => {
+                    const elementName = element.dataset.element;
+                    addElementToCraftingSlot(elementName);
+                });
+                
+                // Drag and drop functionality
+                element.setAttribute('draggable', 'true');
+                element.addEventListener('dragstart', handleDragStart);
+                element.addEventListener('dragend', handleDragEnd);
+            });
+
+            // Set up drop zones for slots
+            slots.forEach((slot, index) => {
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('dragenter', handleDragEnter);
+                slot.addEventListener('dragleave', handleDragLeave);
+                slot.addEventListener('drop', (e) => handleDrop(e, index));
+            });
+        }
+
+        // Drag and drop handlers for elements
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.element);
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            e.target.classList.add('highlight');
+        }
+
+        function handleDragLeave(e) {
+            e.target.classList.remove('highlight');
+        }
+
+        function handleDrop(e, slotIndex) {
+            e.preventDefault();
+            e.target.classList.remove('highlight');
+            
+            const elementName = e.dataTransfer.getData('text/plain');
+            addElementToCraftingSlot(elementName, slotIndex);
+        }
+
+        // Add element to crafting slot
+        function addElementToCraftingSlot(elementName, slotIndex = null) {
+            if (slotIndex !== null) {
+                // Specific slot requested
+                gameState.craftingSlots[slotIndex] = elementName;
+                updateSlot(slotIndex, elementName);
+            } else {
+                // Find first available slot
+                for (let i = 0; i < gameState.craftingSlots.length; i++) {
+                    if (!gameState.craftingSlots[i]) {
+                        gameState.craftingSlots[i] = elementName;
+                        updateSlot(i, elementName);
+                        break;
+                    }
+                }
+            }
+            updateCombineButton();
+        }
+
+        // Update a crafting slot with an element
+        function updateSlot(slotIndex, elementName) {
+            const slot = slots[slotIndex];
+            slot.textContent = elementName.toUpperCase();
+            slot.classList.add('filled');
+        }
+
+        // Update the combine button state
+        function updateCombineButton() {
+            const bothSlotsFilled = gameState.craftingSlots[0] && gameState.craftingSlots[1];
+            combineBtn.disabled = !bothSlotsFilled;
+        }
+
+        // Combine the elements in the crafting slots
+        function combineElements() {
+            const element1 = gameState.craftingSlots[0];
+            const element2 = gameState.craftingSlots[1];
+            
+            // Try both combinations (order doesn't matter)
+            const combination1 = `${element1}+${element2}`;
+            const combination2 = `${element2}+${element1}`;
+            
+            let result = gameState.combinations[combination1] || gameState.combinations[combination2];
+            
+            if (result) {
+                // Check if this is a new element
+                if (!gameState.inventory.has(result)) {
+                    gameState.inventory.add(result);
+                    updateInventory();
+                    
+                    // Check for Easter egg
+                    if (gameState.easterEggs[result]) {
+                        easterEggsFound++;
+                        showResult(`EASTER EGG! YOU CREATED: ${result.toUpperCase()}`, true);
+                        
+                        // Add special class for Easter egg elements
+                        addNewElementToCraftingArea(result, true);
+                    } else {
+                        showResult(`SUCCESS! YOU CREATED: ${result.toUpperCase()}`, true);
+                        addNewElementToCraftingArea(result);
+                    }
+                    
+                    // Check achievements
+                    checkAchievements();
+                } else {
+                    showResult(`YOU ALREADY HAVE ${result.toUpperCase()}`, false);
+                }
+            } else {
+                // Failed combination
+                showResult("NO COMBINATION FOUND", false);
+            }
+            
+            // Clear the crafting slots
+            clearCraftingSlots();
+            
+            // Save game after each combination
+            autoSave();
+        }
+
+        // Check for achievements
+        function checkAchievements() {
+            const totalElements = gameState.inventory.size;
+            
+            if (totalElements >= 5 && !gameState.achievements['First Creation']) {
+                gameState.achievements['First Creation'] = true;
+                showResult("ACHIEVEMENT: First Creation!", true);
+            }
+            
+            if (totalElements >= 20 && !gameState.achievements['Master Crafter']) {
+                gameState.achievements['Master Crafter'] = true;
+                showResult("ACHIEVEMENT: Master Crafter!", true);
+            }
+            
+            if (totalElements >= 35 && !gameState.achievements['Elemental Master']) {
+                gameState.achievements['Elemental Master'] = true;
+                showResult("ACHIEVEMENT: Elemental Master!", true);
+            }
+            
+            if (easterEggsFound >= 3 && !gameState.achievements['Easter Egg Hunter']) {
+                gameState.achievements['Easter Egg Hunter'] = true;
+                showResult("ACHIEVEMENT: Easter Egg Hunter!", true);
+            }
+            
+            if (gameState.inventory.has('God') && !gameState.achievements['Digital God']) {
+                gameState.achievements['Digital God'] = true;
+                showResult("ACHIEVEMENT: Digital God! You've created everything.", true);
+            }
+        }
+
+        // Show a random hint
+        function showHint() {
+            const hints = [
+                "Try combining elements with themselves",
+                "Some elements have special properties",
+                "Look for patterns in the combinations",
+                "The more elements you discover, the more possibilities open up",
+                "Don't forget to check your inventory for new combinations",
+                "Some elements can only be created in specific ways",
+                "Think about real-world relationships between elements"
+            ];
+            
+            const randomHint = hints[Math.floor(Math.random() * hints.length)];
+            showResult(`HINT: ${randomHint}`, true);
+        }
+
+        // Add a new element to the crafting area
+        function addNewElementToCraftingArea(elementName, isEasterEgg = false) {
+            const newElement = document.createElement('div');
+            newElement.className = 'element new-element';
+            newElement.textContent = elementName.toUpperCase();
+            newElement.dataset.element = elementName;
+            
+            if (isEasterEgg) {
+                newElement.classList.add('easter-egg', 'secret-element');
+            }
+            
+            newElement.addEventListener('click', () => {
+                addElementToCraftingSlot(elementName);
+            });
+            
+            // Add drag and drop to new element
+            newElement.setAttribute('draggable', 'true');
+            newElement.addEventListener('dragstart', handleDragStart);
+            newElement.addEventListener('dragend', handleDragEnd);
+            
+            craftingElements.appendChild(newElement);
+            
+            // Remove the animation class after the animation completes
+            setTimeout(() => {
+                newElement.classList.remove('new-element');
+            }, 300);
+        }
+
+        // Show the result of a combination attempt
+        function showResult(message, isSuccess) {
+            resultSection.textContent = message;
+            resultSection.className = 'result-section ' + (isSuccess ? 'success' : 'error');
+        }
+
+        // Clear the crafting slots
+        function clearCraftingSlots() {
+            gameState.craftingSlots = [null, null];
+            slots.forEach(slot => {
+                slot.textContent = '';
+                slot.classList.remove('filled');
+                slot.classList.remove('highlight');
+            });
+            updateCombineButton();
+        }
+
+        // Update the inventory display with floppy disks
+        function updateInventory() {
+            inventoryContainer.innerHTML = '';
+            inventoryDetail.innerHTML = '';
+            
+            gameState.inventory.forEach(element => {
+                const isEasterEgg = gameState.easterEggs[element];
+                
+                const floppyDisk = document.createElement('div');
+                floppyDisk.className = 'inventory-floppy';
+                if (isEasterEgg) {
+                    floppyDisk.style.background = 'var(--mac-purple)';
+                }
+                
+                const label = document.createElement('div');
+                label.className = 'floppy-label';
+                label.textContent = element.toUpperCase();
+                
+                floppyDisk.appendChild(label);
+                
+                floppyDisk.addEventListener('click', () => {
+                    showFloppyDetail(element);
+                });
+                
+                inventoryContainer.appendChild(floppyDisk.cloneNode(true));
+                inventoryDetail.appendChild(floppyDisk);
+            });
+            discoveredCount.textContent = gameState.inventory.size;
+        }
+
+        // Show floppy disk detail
+        function showFloppyDetail(elementName) {
+            detailTitle.textContent = elementName.toUpperCase();
+            
+            let recipe = "Base element";
+            for (const [combo, result] of Object.entries(gameState.combinations)) {
+                if (result === elementName) {
+                    const [elem1, elem2] = combo.split('+');
+                    recipe = `${elem1} + ${elem2}`;
+                    break;
+                }
+            }
+            
+            const description = gameState.elementDescriptions[elementName] || "An elemental substance with unknown properties.";
+            const easterEggInfo = gameState.easterEggs[elementName];
+            
+            let contentHTML = `
+                <p><strong>Description:</strong> ${description}</p>
+                <div class="detail-recipe">
+                    <strong>Recipe:</strong> ${recipe}
+                </div>
+            `;
+            
+            if (easterEggInfo) {
+                contentHTML += `
+                    <div class="detail-recipe" style="background: var(--mac-purple); color: white;">
+                        <strong>EASTER EGG:</strong> ${easterEggInfo.type.toUpperCase()} - ${easterEggInfo.effect}
+                    </div>
+                `;
+            }
+            
+            contentHTML += `
+                <p><strong>Date Discovered:</strong> ${new Date().toLocaleDateString()}</p>
+            `;
+            
+            detailContent.innerHTML = contentHTML;
+            
+            floppyDetail.classList.add('show');
+        }
+
+        // Close floppy disk detail
+        function closeFloppyDetail() {
+            floppyDetail.classList.remove('show');
+        }
+
+        // Show trash message (Easter egg)
+        function showTrashMessage() {
+            const messages = [
+                "The trash is empty.",
+                "There's nothing here.",
+                "This is not a recycling bin.",
+                "No items to delete.",
+                "The trash can is feeling lonely.",
+                "Nothing to see here, move along.",
+                "This is not the Easter egg you're looking for."
+            ];
+            
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            showResult(`TRASH: ${randomMessage}`, false);
+        }
+
+        // Handle secret click (Easter egg)
+        function handleSecretClick() {
+            secretClickCount++;
+            
+            if (secretClickCount === 7) {
+                showResult("SECRET UNLOCKED: You found the hidden Easter egg!", true);
+                
+                // Add a secret element directly to inventory
+                if (!gameState.inventory.has('Computer')) {
+                    gameState.inventory.add('Computer');
+                    updateInventory();
+                    addNewElementToCraftingArea('Computer', true);
+                    showResult("You discovered: COMPUTER!", true);
+                }
+                
+                secretClickCount = 0;
+            }
+        }
+
+        // Auto-save function
+        function autoSave() {
+            const saveData = {
+                inventory: Array.from(gameState.inventory),
+                elementColors: gameState.elementColors,
+                achievements: gameState.achievements
+            };
+            
+            localStorage.setItem('infiniteCraftMacSave', JSON.stringify(saveData));
+        }
+
+        // Load game from localStorage
+        function loadGame() {
+            const savedGame = localStorage.getItem('infiniteCraftMacSave');
+            
+            if (savedGame) {
+                try {
+                    const saveData = JSON.parse(savedGame);
+                    gameState.inventory = new Set(saveData.inventory);
+                    gameState.elementColors = saveData.elementColors || {};
+                    gameState.achievements = saveData.achievements || {};
+                    
+                    // Count Easter eggs
+                    easterEggsFound = 0;
+                    gameState.inventory.forEach(element => {
+                        if (gameState.easterEggs[element]) {
+                            easterEggsFound++;
+                        }
+                    });
+                    
+                    updateInventory();
+                    rebuildCraftingArea();
+                } catch (e) {
+                    console.error("Error loading save data:", e);
+                }
+            }
+        }
+
+        // Rebuild crafting area with all discovered elements
+        function rebuildCraftingArea() {
+            craftingElements.innerHTML = '';
+            
+            gameState.inventory.forEach(element => {
+                const isEasterEgg = gameState.easterEggs[element];
+                
+                const elementDiv = document.createElement('div');
+                elementDiv.className = 'element';
+                elementDiv.textContent = element.toUpperCase();
+                elementDiv.dataset.element = element;
+                
+                if (isEasterEgg) {
+                    elementDiv.classList.add('easter-egg', 'secret-element');
+                }
+                
+                elementDiv.addEventListener('click', () => {
+                    addElementToCraftingSlot(element);
+                });
+                
+                // Add drag and drop to element
+                elementDiv.setAttribute('draggable', 'true');
+                elementDiv.addEventListener('dragstart', handleDragStart);
+                elementDiv.addEventListener('dragend', handleDragEnd);
+                
+                craftingElements.appendChild(elementDiv);
+            });
+            
+            // Set up interactions for new elements
+            setupElementInteractions();
+        }
+
+        // Reset the game
+        function resetGame() {
+            if (confirm('Start a new game? All progress will be lost.')) {
+                gameState.inventory = new Set(starterElements);
+                gameState.elementColors = {};
+                gameState.achievements = {
+                    'First Creation': false,
+                    'Master Crafter': false,
+                    'Elemental Master': false,
+                    'Easter Egg Hunter': false,
+                    'Digital God': false
+                };
+                easterEggsFound = 0;
+                secretClickCount = 0;
+                
+                clearCraftingSlots();
+                updateInventory();
+                showResult('NEW GAME STARTED. DRAG ELEMENTS TO SLOTS', false);
+                
+                // Reset crafting area to initial elements only
+                rebuildCraftingArea();
+                
+                // Clear saved game
+                localStorage.removeItem('infiniteCraftMacSave');
+            }
+        }
+
+        // Initialize the game when the page loads
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
